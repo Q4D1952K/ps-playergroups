@@ -4,8 +4,9 @@ local GroupID = 0
 local isGroupLeader = false
 local GroupBlips = {}
 
-RegisterNetEvent('QBCore:Client:OnPlayerUnload', function()
-    if GroupID ~= nil then
+RegisterNetEvent('esx:onPlayerLogout')
+AddEventHandler('esx:onPlayerLogout', function()
+	if GroupID ~= nil then
         TriggerServerEvent("groups:leaveGroup", GroupID)
         currentJobStage = "WAITING"
         GroupID = 0
@@ -16,7 +17,6 @@ RegisterNetEvent('QBCore:Client:OnPlayerUnload', function()
         end
     end
 end)
-
 
 RegisterNetEvent("groups:createBlip", function(name, data)
 
@@ -139,7 +139,7 @@ end)
 
 RegisterNUICallback('group-create', function(data, cb)
     local p = promise.new()
-    QBCore.Functions.TriggerCallback("groups:requestCreateGroup", function(r)
+    ESX.TriggerServerCallback("groups:requestCreateGroup", function(r)
         p:resolve(r)
     end)
     local d = Citizen.Await(p)
@@ -155,7 +155,7 @@ end)
 
 RegisterNUICallback('getActiveGroups', function(data, cb)
     local request = promise.new()
-    QBCore.Functions.TriggerCallback("groups:getActiveGroups", function(result)
+    ESX.TriggerServerCallback("groups:getActiveGroups", function(result)
         request:resolve(result)
     end)
     local data = Citizen.Await(request)
@@ -166,26 +166,26 @@ local requestCooldown = false
 RegisterNUICallback('request-join', function(data, cb)
     if not requestCooldown then
         local request = promise.new()
-        QBCore.Functions.TriggerCallback("groups:requestJoinGroup", function(result)
+        ESX.TriggerServerCallback("groups:requestJoinGroup", function(result)
             request:resolve(result)
         end, data.groupID)
         local data = Citizen.Await(request)
-        if request then 
-            QBCore.Functions.Notify("Join request sent", "success")
-        else 
-            QBCore.Functions.Notify("You cannot do that yet", "error")
+        if request then
+            ESX.ShowNotification("Join request sent")
+        else
+            ESX.ShowNotification("You cannot do that yet")
         end
         requestCooldown = true
         Wait(5000)
         requestCooldown = false
-    else 
-        QBCore.Functions.Notify("You need to wait before requesting again", "error")
+    else
+        ESX.ShowNotification("You need to wait before requesting again")
     end
 end)
 
 RegisterNUICallback('view-requests', function(data, cb)
     local request = promise.new()
-    QBCore.Functions.TriggerCallback("groups:getGroupRequests", function(result)
+    ESX.TriggerServerCallback("groups:getGroupRequests", function(result)
         request:resolve(result)
     end, data.groupID)
     local data = Citizen.Await(request)
@@ -194,7 +194,7 @@ end)
 
 RegisterNUICallback('update-status', function(data)
     currentJobStage = data.status
-    QBCore.Functions.Notify("Your group status changed to "..currentJobStage, "primary")
+    ESX.ShowNotification(Your group status changed to "..currentJobStage)
 end)
 
 RegisterNUICallback('request-accept', function(data)
