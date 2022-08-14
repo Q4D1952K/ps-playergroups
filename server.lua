@@ -1,4 +1,3 @@
-local QBCore = exports['qb-core']:GetCoreObject()
 local Groups = {} -- Don't Touch
 local Players = {} -- Don't Touch
 local Requests = {} -- Don't Touch
@@ -17,7 +16,7 @@ AddEventHandler('playerDropped', function(reason)
 end)
 
 -- Player sends a requested asking the server if they can create a group.
-QBCore.Functions.CreateCallback("groups:requestCreateGroup", function(source, cb)
+ESX.RegisterServerCallback('groups:requestCreateGroup', function(source, cb)
     local src = source
     local player = QBCore.Functions.GetPlayer(src)
     if not Players[src] then
@@ -32,15 +31,15 @@ QBCore.Functions.CreateCallback("groups:requestCreateGroup", function(source, cb
         }
         cb({ groupID = groupID, name = GetPlayerCharName(src), id = src })
     else
-        TriggerClientEvent("QBCore:Notify", src, "You are already in a group", "error")
+	TriggerClientEvent("esx:showNotification", src, "You are already in a group")
         cb(false)
     end
 end)
 
 -- Get all active groups currently in the server.
-QBCore.Functions.CreateCallback("groups:getActiveGroups", function(source, cb)
+ESX.RegisterServerCallback('groups:getActiveGroups', function(source, cb)
     local src = source
-    local player = QBCore.Functions.GetPlayer(src)
+    local player = ESX.GetPlayerFromId(src)
 
     local temp = {}
     for k,v in pairs(Groups) do
@@ -54,9 +53,9 @@ QBCore.Functions.CreateCallback("groups:getActiveGroups", function(source, cb)
 end)
 
 -- Returns all current join requests for the specified groupID.
-QBCore.Functions.CreateCallback("groups:getGroupRequests", function(source, cb, groupID)
+ESX.RegisterServerCallback('groups:getGroupRequests', function(source, cb, groupID)
     local src = source
-    local player = QBCore.Functions.GetPlayer(src)
+    local player = ESX.GetPlayerFromId(src)
 
     local temp = {}
     if Requests[groupID] then 
@@ -70,7 +69,7 @@ QBCore.Functions.CreateCallback("groups:getGroupRequests", function(source, cb, 
 end)
 
 -- Sends a request to join the specified groupID
-QBCore.Functions.CreateCallback("groups:requestJoinGroup", function(source, cb, groupID)
+ESX.RegisterServerCallback('groups:requestJoinGroup', function(source, cb, groupID)
     local src = source
     local lead = Groups[groupID]["members"]["leader"]
     if not Players[src] then
@@ -81,16 +80,16 @@ QBCore.Functions.CreateCallback("groups:requestJoinGroup", function(source, cb, 
                 end
                 table.insert(Requests[groupID], src)
                 cb(true)
-                TriggerClientEvent("QBCore:Notify", lead, "Someone has requested to join the group", "success")
+		TriggerClientEvent("esx:showNotification", lead, "Someone has requested to join the group")
             else
-                TriggerClientEvent("QBCore:Notify", src, "The group is full", "error")
+		TriggerClientEvent("esx:showNotification", src, "The group is full")
             end
         else 
-            TriggerClientEvent("QBCore:Notify", src, "That group doesn't exist", "error")
+	TriggerClientEvent("esx:showNotification", src, "That group doesn't exist")
         end
         cb(true)
     else
-        TriggerClientEvent("QBCore:Notify", src, "You already have a request pending", "error")
+	TriggerClientEvent("esx:showNotification", src, "You already have a request pending")
         cb(false)
     end
 end)
@@ -104,7 +103,7 @@ RegisterNetEvent("groups:acceptRequest", function(player, groupID)
                 Requests[groupID][k] = nil
             end
         end
-        TriggerClientEvent("QBCore:Notify", player, "Your group join request was accepted", "success")
+	TriggerClientEvent("esx:showNotification", player, "Your group join request was accepted")
         TriggerClientEvent("groups:JoinGroup", player, groupID)
     end
 end)
@@ -117,17 +116,17 @@ RegisterNetEvent("groups:denyRequest", function(player, groupID)
             Requests[groupID][k] = nil
         end
     end
-    TriggerClientEvent("QBCore:Notify", player, "Your group join request was denied", "error")
+	TriggerClientEvent("esx:showNotification", player, "Your group join request was denied")
 end)
 
 -- Kicks the specified player from the group.
 RegisterNetEvent("groups:kickMember", function(player, groupID)
     RemovePlayerFromGroup(player, groupID)
-    TriggerClientEvent("QBCore:Notify", player, "You were removed from the group", "error")
+	TriggerClientEvent("esx:showNotification", player, "You were removed from the group")
 end)
 
 -- Returns all members in the specified groupID.
-QBCore.Functions.CreateCallback("groups:getGroupMembers", function(source, cb, groupID)
+ESX.RegisterServerCallback('groups:getGroupMembers', function(source, cb, groupID)
     local src = source
     local temp = {}
     local members = getGroupMembers(groupID)
@@ -182,12 +181,12 @@ function RemovePlayerFromGroup(player, groupID)
             if Groups[groupID]["members"]["leader"] == player then
                 if ChangeGroupLeader(groupID) then
                     Players[player] = nil
-                    TriggerClientEvent("QBCore:Notify", player, "You have left the group", "primary")
+                    TriggerClientEvent("esx:showNotification", player, "You have left the group")
                     Wait(10)
                     UpdateGroupData(groupID)
                 else
                     Players[player] = nil
-                    TriggerClientEvent("QBCore:Notify", player, "You have left the group", "primary")
+			TriggerClientEvent("esx:showNotification", player, "You have left the group")
                     DestroyGroup(groupID)
                 end
             else
@@ -198,7 +197,7 @@ function RemovePlayerFromGroup(player, groupID)
                         Players[player] = nil
                     end
                 end
-                TriggerClientEvent("QBCore:Notify", player, "You have left the group", "primary")
+		TriggerClientEvent("esx:showNotification", player, "You have left the group")
                 Wait(10)
                 UpdateGroupData(groupID)
             end
@@ -221,8 +220,9 @@ end
 
 -- Returns characters first and last name for the UI.
 function GetPlayerCharName(src)
-    local player = QBCore.Functions.GetPlayer(src)
-    return player.PlayerData.charinfo.firstname.." "..player.PlayerData.charinfo.lastname
+    local player = ESX.GetPlayerFromId(src)
+	local name = player.getName()
+    return name
 end
 
 -- Returns if player is the group leader.
