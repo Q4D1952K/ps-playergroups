@@ -1,4 +1,5 @@
 # THIS IS NOT A DRAG AND DROP SCRIPT
+ESX Versions
 This script is used as a tool to create and get data for player groups.
 There are no jobs or anything included with these files.
 
