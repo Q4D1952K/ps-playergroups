@@ -5,7 +5,7 @@ author 'devyn'
 
 client_script "client.lua"
 server_script "server.lua"
-
+shared_script '@es_extended/imports.lua'
 ui_page "html/index.html"
 
 files({
