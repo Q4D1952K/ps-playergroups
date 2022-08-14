@@ -18,7 +18,7 @@ end)
 -- Player sends a requested asking the server if they can create a group.
 ESX.RegisterServerCallback('groups:requestCreateGroup', function(source, cb)
     local src = source
-    local player = QBCore.Functions.GetPlayer(src)
+    local player = ESX.GetPlayerFromId(src)
     if not Players[src] then
         Players[src] = true
         local groupID = #Groups+1
